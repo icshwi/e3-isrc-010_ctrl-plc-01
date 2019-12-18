@@ -1,0 +1,7 @@
+############################  LEBT EMU  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("HorWtrFlowOK", PV_DESC="Hor. EMU Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("VerWtrFlowOK", PV_DESC="Ver. EMU Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")

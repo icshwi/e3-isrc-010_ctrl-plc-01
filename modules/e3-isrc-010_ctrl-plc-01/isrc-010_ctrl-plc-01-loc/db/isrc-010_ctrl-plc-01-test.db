@@ -1,0 +1,5008 @@
+
+record(stringin, "ISrc-010:Ctrl-PLC-01:ModVersionR") {
+	field(DISP,	"1")
+	field(VAL,	"$(MODVERSION=N/A)")
+	field(PINI,	"YES")
+}
+
+record(stringin, "ISrc-010:Ctrl-PLC-01:PLCFCommitR") {
+	field(DISP,	"1")
+#7bed32997ad22c9988754478155c8c6fee4ce62f
+	field(VAL,	"7bed32997ad22c9988754478155c8c6fee4ce62")
+	field(PINI,	"YES")
+	info("plcf_commit", "7bed32997ad22c9988754478155c8c6fee4ce62f")
+}
+
+#########################################################
+########## EPICS <-> PLC connection management ##########
+#########################################################
+record(bi, "ISrc-010:Ctrl-PLC-01:ModbusConnectedR") {
+	field(DESC,	"Shows if the MODBUS channel connected")
+	field(ONAM,	"Connected")
+	field(ZNAM,	"Disconnected")
+	field(ZSV,      "MAJOR")
+	field(VAL,	"1")
+	field(PINI,	"YES")
+	field(FLNK,	"ISrc-010:Ctrl-PLC-01:CommsHashToPLCS")
+}
+record(bi, "ISrc-010:Ctrl-PLC-01:S7ConnectedR") {
+	field(DESC,	"Shows if the S7 channel is connected")
+	field(ONAM,	"Connected")
+	field(ZNAM,	"Disconnected")
+	field(ZSV,      "MAJOR")
+	field(VAL,	"1")
+	field(PINI,	"YES")
+}
+record(calcout, "ISrc-010:Ctrl-PLC-01:iCalcConn") {
+	field(INPA,	"ISrc-010:Ctrl-PLC-01:S7ConnectedR CP")
+	field(INPB,	"ISrc-010:Ctrl-PLC-01:ModbusConnectedR CP")
+	field(CALC,	"A && B")
+	field(OUT,	"ISrc-010:Ctrl-PLC-01:ConnectedR PP")
+}
+record(bi, "ISrc-010:Ctrl-PLC-01:ConnectedR") {
+	field(DESC,	"Shows if the PLC is connected")
+	field(ONAM,	"Connected")
+	field(ZNAM,	"Disconnected")
+	field(ZSV,      "MAJOR")
+}
+record(bi, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR") {
+	field(DESC,	"Shows if the comms hash is correct")
+	field(ONAM,	"Correct")
+	field(ZNAM,	"Incorrect")
+	field(ZSV,      "MAJOR")
+}
+record(bi, "ISrc-010:Ctrl-PLC-01:AliveR") {
+	alias("ISrc-010:Ctrl-PLC-01:CommsOK")
+	field(DESC,	"Shows if the PLC is sending heartbeats")
+	field(ONAM,	"Alive")
+	field(ZNAM,	"Not responding")
+	field(ZSV,      "MAJOR")
+}
+record(calcout, "ISrc-010:Ctrl-PLC-01:iCheckHash") {
+	field(INPA,	"ISrc-010:Ctrl-PLC-01:iCommsHashToPLC")
+	field(INPB,	"ISrc-010:Ctrl-PLC-01:CommsHashFromPLCR")
+	field(INPC,	"ISrc-010:Ctrl-PLC-01:CommsHashFromPLCR.STAT")
+	field(CALC,	"A == B && C == 0")
+	field(OOPT,	"On Change")
+	field(OUT,	"ISrc-010:Ctrl-PLC-01:PLCHashCorrectR PP")
+}
+record(bi, "ISrc-010:Ctrl-PLC-01:iOne") {
+	field(DISP,	"1")
+	field(PINI,	"YES")
+	field(VAL,	"1")
+}
+record(bo, "ISrc-010:Ctrl-PLC-01:iGotHeartbeat") {
+	field(DOL,	"ISrc-010:Ctrl-PLC-01:iOne")
+	field(OMSL,	"closed_loop")
+	field(OUT,	"ISrc-010:Ctrl-PLC-01:iKickAlive PP")
+}
+record(bo, "ISrc-010:Ctrl-PLC-01:iKickAlive") {
+	field(HIGH,	"5")
+	field(OUT,	"ISrc-010:Ctrl-PLC-01:AliveR PP")
+}
+
+########################################################
+########## EPICS -> PLC comms management data ##########
+########################################################
+record(ao, "ISrc-010:Ctrl-PLC-01:iCommsHashToPLC") {
+	field(DISP,	"1")
+	field(PINI,	"YES")
+	field(VAL,	"1347332123")
+}
+record(ao, "ISrc-010:Ctrl-PLC-01:CommsHashToPLCS") {
+	field(DESC,	"Sends comms hash to PLC")
+	field(OMSL,	"closed_loop")
+	field(DOL,	"ISrc-010:Ctrl-PLC-01:iCommsHashToPLC")
+	field(DISV,	"0")
+	field(SDIS,	"ISrc-010:Ctrl-PLC-01:ConnectedR")
+}
+record(calc, "ISrc-010:Ctrl-PLC-01:iHeartbeatToPLC") {
+	field(SCAN,	"1 second")
+	field(INPA,	"ISrc-010:Ctrl-PLC-01:iHeartbeatToPLC.VAL")
+	field(CALC,	"(A >= 32000)? 0 : A + 1")
+	field(FLNK,	"ISrc-010:Ctrl-PLC-01:HeartbeatToPLCS")
+	field(DISV,	"0")
+	field(SDIS,	"ISrc-010:Ctrl-PLC-01:ConnectedR")
+}
+record(ao, "ISrc-010:Ctrl-PLC-01:HeartbeatToPLCS") {
+	field(DESC,	"Sends heartbeat to PLC")
+	field(OMSL,	"closed_loop")
+	field(DOL,	"ISrc-010:Ctrl-PLC-01:iHeartbeatToPLC.VAL")
+	field(OIF,	"Full")
+	field(DRVL,	"0")
+	field(DRVH,	"32000")
+}
+
+########################################################
+########## PLC -> EPICS comms management data ##########
+########################################################
+record(ai, "ISrc-010:Ctrl-PLC-01:CommsHashFromPLCR") {
+	field(DESC,	"Comms hash from PLC")
+	field(SCAN,	"1 second")
+	field(PINI,	"YES")
+	field(VAL,	"1347332123")
+	field(FLNK,	"ISrc-010:Ctrl-PLC-01:iCheckHash")
+}
+record(ai, "ISrc-010:Ctrl-PLC-01:HeartbeatFromPLCR") {
+	field(DESC,	"Heartbeat from PLC")
+	field(INP,	"ISrc-010:Ctrl-PLC-01:iHeartbeatToPLC.VAL CP")
+	field(FLNK,	"ISrc-010:Ctrl-PLC-01:iGotHeartbeat")
+}
+
+########################################################
+################# Test management data #################
+########################################################
+record(ao, "ISrc-010:Ctrl-PLC-01:FixHashS") {
+	field(DESC,	"Make HASH correct")
+	field(OMSL,	"closed_loop")
+	field(DOL,	"ISrc-010:Ctrl-PLC-01:iCommsHashToPLC")
+	field(OUT,	"ISrc-010:Ctrl-PLC-01:CommsHashFromPLCR PP")
+}
+
+record(bo, "ISrc-010:Ctrl-PLC-01:RuinHashS") {
+	field(DESC,	"Make HASH incorrect")
+	field(FLNK,	"ISrc-010:Ctrl-PLC-01:iRuinHash")
+}
+record(calcout, "ISrc-010:Ctrl-PLC-01:iRuinHash") {
+	field(DESC,	"Make HASH incorrect")
+	field(INPA,	"ISrc-010:Ctrl-PLC-01:iCommsHashToPLC")
+	field(CALC,	"A * -1")
+	field(OUT,	"ISrc-010:Ctrl-PLC-01:CommsHashFromPLCR PP")
+}
+
+##########
+########## LEBT-020:ID-IBS-001 ##########
+##########
+##########
+
+############################  LEBT Beam Dump  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-020:ID-IBS-001 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-020:ID-IBS-001:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-020:ID-IBS-001_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:BMD-Chop ##########
+##########
+##########
+
+############################  LEBT Chopper  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:BMD-Chop PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PwrSysOK",        PV_DESC="Chopper Power System Status",    PV_ONAM="OK",  PV_ZNAM="NOK")
+record(bi, "LEBT-010:BMD-Chop:PwrSysOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Chopper Power System Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Chop_iDB")
+	info("plc_variable", "PwrSysOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ChopVoltAlarmR",  PV_DESC="Chopper Chopping Voltage Alarm", PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:BMD-Chop:ChopVoltAlarmR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Chopper Chopping Voltage Alarm")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Chop_iDB")
+	info("plc_variable", "ChopVoltAlarmR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrFlowOK",       PV_DESC="Chopper Water Flow Status",      PV_ONAM="OK",  PV_ZNAM="NOK")
+record(bi, "LEBT-010:BMD-Chop:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Chopper Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Chop_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVEnCmdRB",       PV_DESC="Chopper HV Enable Cmd ReadBack", PV_ONAM="ON",  PV_ZNAM="OFF")
+record(bi, "LEBT-010:BMD-Chop:HVEnCmdRB")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Chopper HV Enable Cmd ReadBack")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Chop_iDB")
+	info("plc_variable", "HVEnCmdRB")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+############################
+#COMMAND BLOCK
+############################
+#<<<--- define_command_block()
+
+##########
+########## LEBT-010:BMD-Chop EPICS -> PLC commands   ##########
+##########
+#<<<--- add_digital("HVEnOnCmd",         PV_DESC="Chopper High Voltage Enable Command")
+record(bo, "LEBT-010:BMD-Chop:HVEnOnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Chopper High Voltage Enable Command")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Chop_iDB")
+	info("plc_variable", "HVEnOnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVEnOffCmd",        PV_DESC="Chopper High Voltage Disable Command")
+record(bo, "LEBT-010:BMD-Chop:HVEnOffCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Chopper High Voltage Disable Command")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Chop_iDB")
+	info("plc_variable", "HVEnOffCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Coil-01 ##########
+##########
+##########
+
+############################  ISRC_LEBT Coils and Solenoids Water Flow and Temperature Status  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Coil-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Water Flow Status",        PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Coil-01:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Coil-01_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempOK", PV_DESC="Water Temperature Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Coil-01:WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temperature Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Coil-01_iDB")
+	info("plc_variable", "WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Coil-02 ##########
+##########
+##########
+
+############################  ISRC_LEBT Coils and Solenoids Water Flow and Temperature Status  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Coil-02 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Water Flow Status",        PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Coil-02:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Coil-02_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempOK", PV_DESC="Water Temperature Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Coil-02:WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temperature Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Coil-02_iDB")
+	info("plc_variable", "WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Coil-03 ##########
+##########
+##########
+
+############################  ISRC_LEBT Coils and Solenoids Water Flow and Temperature Status  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Coil-03 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Water Flow Status",        PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Coil-03:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Coil-03_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempOK", PV_DESC="Water Temperature Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Coil-03:WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temperature Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Coil-03_iDB")
+	info("plc_variable", "WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:BMD-Sol-01 ##########
+##########
+##########
+
+############################  ISRC_LEBT Coils and Solenoids Water Flow and Temperature Status  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:BMD-Sol-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Water Flow Status",        PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:BMD-Sol-01:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Sol-01_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempOK", PV_DESC="Water Temperature Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:BMD-Sol-01:WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temperature Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Sol-01_iDB")
+	info("plc_variable", "WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:BMD-Sol-02 ##########
+##########
+##########
+
+############################  ISRC_LEBT Coils and Solenoids Water Flow and Temperature Status  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:BMD-Sol-02 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Water Flow Status",        PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:BMD-Sol-02:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Sol-02_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempOK", PV_DESC="Water Temperature Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:BMD-Sol-02:WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temperature Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:BMD-Sol-02_iDB")
+	info("plc_variable", "WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:ID-Coll ##########
+##########
+##########
+
+############################  LEBT Collimator  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:ID-Coll PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Collimator Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:ID-Coll:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Collimator Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:ID-Coll_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:PwrC-HVIT-01 ##########
+##########
+##########
+
+############################  ISRC HV Isolation Transformer  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:PwrC-HVIT-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("LidOpenR",    PV_DESC="Isol Transf Lid Status",                 PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:PwrC-HVIT-01:LidOpenR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Isol Transf Lid Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-HVIT-01_iDB")
+	info("plc_variable", "LidOpenR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("OilTempOK",   PV_DESC="Isol Transf Oil Temperature Switch",     PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:PwrC-HVIT-01:OilTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Isol Transf Oil Temperature Switch")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-HVIT-01_iDB")
+	info("plc_variable", "OilTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-HVPS ##########
+##########
+##########
+
+############################  ISrc HVPS  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-HVPS PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("ITLckEnCmdR",     PV_DESC="High Voltage Power Supply Enable Command", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-HVPS:ITLckEnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "High Voltage Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-HVPS_iDB")
+	info("plc_variable", "ITLckEnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVPSVolOK_Magtr", PV_DESC="HV Voltage Status for Magnetron",          PV_ONAM="OK", PV_ZNAM="NOK!")
+record(bi, "ISrc-010:ISS-HVPS:HVPSVolOK_Magtr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "HV Voltage Status for Magnetron")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK!")
+	info("plc_datablock", "DEV_ISrc-010:ISS-HVPS_iDB")
+	info("plc_variable", "HVPSVolOK_Magtr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+############################
+#COMMAND BLOCK
+############################
+#<<<--- define_command_block()
+
+##########
+########## ISrc-010:ISS-HVPS EPICS -> PLC commands   ##########
+##########
+#<<<--- add_digital("ESTOP",           PV_DESC="HVPS Emergency Stop")
+record(bo, "ISrc-010:ISS-HVPS:ESTOP")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "HVPS Emergency Stop")
+	info("plc_datablock", "DEV_ISrc-010:ISS-HVPS_iDB")
+	info("plc_variable", "ESTOP")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+############################
+#PARAMETER BLOCK
+############################
+#<<<--- define_parameter_block()
+
+##########
+########## ISrc-010:ISS-HVPS EPICS -> PLC parameters ##########
+##########
+#<<<--- add_analog("iVolR", "REAL", PV_DESC="HVPS VolR Value")
+record(ao, "ISrc-010:ISS-HVPS:iVolR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "HVPS VolR Value")
+	info("plc_datablock", "DEV_ISrc-010:ISS-HVPS_iDB")
+	info("plc_variable", "iVolR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EPICSConnErr",    PV_DESC="HVPS<->EPICS Conn. Error")
+record(bo, "ISrc-010:ISS-HVPS:EPICSConnErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "HVPS<->EPICS Conn. Error")
+	info("plc_datablock", "DEV_ISrc-010:ISS-HVPS_iDB")
+	info("plc_variable", "EPICSConnErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+
+#<<<--- add_verbatim()
+
+
+record(ao, "ISrc-010:ISS-HVPS:iVolRBDirect")
+{
+  field(DESC, "Redirect HVPS VolR to Interlock PLC")
+  field(DTYP, "Soft Channel")
+  field(FLNK, "ISrc-010:ISS-HVPS:iVolR")
+  field(OUT, "ISrc-010:ISS-HVPS:iVolR")
+  field(DOL, "ISrc-010:ISS-HVPS:VolR CP")
+  field(OMSL, "closed_loop")
+}
+
+record(bo, "ISrc-010:ISS-HVPS:iEPICSConnErr")
+{
+  field(DESC, "Redirect HVPS<->EPICS Conn. Error")
+  field(DTYP, "Soft Channel")
+  field(FLNK, "ISrc-010:ISS-HVPS:EPICSConnErr")
+  field(OUT, "ISrc-010:ISS-HVPS:EPICSConnErr")
+  field(DOL, "ISrc-010:ISS-HVPS:PwrR.SEVR CP MSI")
+  field(IVOA, "Set output to IVOV")
+  field(IVOV, "1")
+  field(OMSL, "closed_loop")
+}
+
+record(fanout, "ISrc-010:ISS-HVPS:UploadParametersS") {
+	field(LNK1, "ISrc-010:ISS-HVPS:iVolR")
+	field(LNK2, "ISrc-010:ISS-HVPS:EPICSConnErr")
+}
+
+
+
+##########
+########## ISrc-010:ISS-HVPf-Doors ##########
+##########
+##########
+
+##############################  ISRC HVPf Doors Status ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-HVPf-Doors PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("CloseR", PV_DESC="Status of HV Platform doors", PV_ONAM="Close", PV_ZNAM="Open")
+record(bi, "ISrc-010:ISS-HVPf-Doors:CloseR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Status of HV Platform doors")
+	field(ONAM, "Close")
+	field(ZNAM, "Open")
+	info("plc_datablock", "DEV_ISrc-010:ISS-HVPf-Doors_iDB")
+	info("plc_variable", "CloseR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-HVPf-Res ##########
+##########
+##########
+
+############################  HVPf Neutral To Ground Resistor Switches  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-HVPf-Res PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("CloseR", PV_DESC="Neutral To Ground Resistor Switch Status", PV_ONAM="Close", PV_ZNAM="Open")
+record(bi, "ISrc-010:ISS-HVPf-Res:CloseR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Neutral To Ground Resistor Switch Status")
+	field(ONAM, "Close")
+	field(ZNAM, "Open")
+	info("plc_datablock", "DEV_ISrc-010:ISS-HVPf-Res_iDB")
+	info("plc_variable", "CloseR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Intf-DIAG ##########
+##########
+##########
+
+############################  ISRC PLC Diagnostics  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Intf-DIAG PLC   -> EPICS status   ##########
+##########
+
+#Local modules connection state
+#<<<--- add_digital("CPU_Connected",       PV_DESC="LM CPU Connected",       PV_ONAM="Connected",  PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:CPU_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM CPU Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "CPU_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("DI1_Connected",       PV_DESC="LM DI1 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:DI1_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM DI1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "DI1_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("DI2_Connected",       PV_DESC="LM DI2 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:DI2_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM DI2 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "DI2_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("AI1_Connected",       PV_DESC="LM AI1 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:AI1_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM AI1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "AI1_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("AI2_Connected",       PV_DESC="LM AI2 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:AI2_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM AI2 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "AI2_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("DO1_Connected",       PV_DESC="LM DO1 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:DO1_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM DO1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "DO1_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("DO2_Connected",       PV_DESC="LM DO2 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:DO2_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM DO2 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "DO2_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#Local modules connection state
+#<<<--- add_digital("CPU_Status",          PV_DESC="LM CPU Status",          PV_ONAM="OK",         PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-DIAG:CPU_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM CPU Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "CPU_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("DI1_Status",          PV_DESC="LM DI1 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-DIAG:DI1_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM DI1 Card Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "DI1_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("DI2_Status",          PV_DESC="LM DI2 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-DIAG:DI2_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM DI2 Card Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "DI2_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("AI1_Status",          PV_DESC="LM AI1 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-DIAG:AI1_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM AI1 Card Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "AI1_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("AI2_Status",          PV_DESC="LM AI2 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-DIAG:AI2_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM AI2 Card Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "AI2_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("DO1_Status",          PV_DESC="LM DO1 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-DIAG:DO1_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM DO1 Card Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "DO1_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("DO2_Status",          PV_DESC="LM DO2 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-DIAG:DO2_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "LM DO2 Card Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "DO2_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+#RIO connection state
+#<<<--- add_digital("RIO_Connected",       PV_DESC="RIO Connected",           PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("RIO_DI1_Connected",   PV_DESC="RIO DI1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_DI1_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO DI1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_DI1_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("RIO_DI2_Connected",   PV_DESC="RIO DI2 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_DI2_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO DI2 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_DI2_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("RIO_AI1_Connected",   PV_DESC="RIO AI1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_AI1_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO AI1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_AI1_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("RIO_DO1_Connected",   PV_DESC="RIO DO1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_DO1_Connected")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO DO1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_DO1_Connected")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#RIO connection state
+#<<<--- add_digital("RIO_Status",          PV_DESC="RIO Status",              PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO Status")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("RIO_DI1_Status",      PV_DESC="RIO DI1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_DI1_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO DI1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_DI1_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("RIO_DI2_Status",      PV_DESC="RIO DI2 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_DI2_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO DI2 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_DI2_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("RIO_AI1_Status",      PV_DESC="RIO AI1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_AI1_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO AI1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_AI1_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("RIO_DO1_Status",      PV_DESC="RIO DO1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")
+record(bi, "ISrc-010:ISS-Intf-DIAG:RIO_DO1_Status")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "RIO DO1 Card Connected")
+	field(ONAM, "Connected")
+	field(ZNAM, "Disconnected")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DIAG_iDB")
+	info("plc_variable", "RIO_DO1_Status")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Intf-DPL ##########
+##########
+##########
+
+############################  ISRC_LEBT interface with DPL  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Intf-DPL PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("DPLOK",       PV_DESC="DPL Local Protection Status",           PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-DPL:DPLOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "DPL Local Protection Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-DPL_iDB")
+	info("plc_variable", "DPLOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Intf-EMU ##########
+##########
+##########
+
+############################  ISRC_LEBT interface with EMU  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Intf-EMU PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("EMUOK",       PV_DESC="EMU Local Protection Status",           PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-EMU:EMUOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "EMU Local Protection Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-EMU_iDB")
+	info("plc_variable", "EMUOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EMUOK_Magtr", PV_DESC="EMU LPS Status for Magnetron Event",    PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-EMU:EMUOK_Magtr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "EMU LPS Status for Magnetron Event")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-EMU_iDB")
+	info("plc_variable", "EMUOK_Magtr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Intf-HMI ##########
+##########
+##########
+
+############################  ISRC_LEBT HMI  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Intf-HMI PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("ComIocOK",                  PV_DESC="PLC<->IOC Communication Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-HMI:ComIocOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "PLC<->IOC Communication Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ComIocOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ComRioOK",                  PV_DESC="PLC<->RIO Communication Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-HMI:ComRioOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "PLC<->RIO Communication Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ComRioOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ISrcOK",                    PV_DESC="ISrc Interlock System Status",   PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-HMI:ISrcOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "ISrc Interlock System Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ISrcOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+################## EVENTS MEMORIZATION ##################
+#<<<--- add_digital("EVENT_A_MEMO",              PV_DESC="Event A Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EVENT_A_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event A Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_A_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_B_MEMO",              PV_DESC="Event B Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EVENT_B_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event B Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_B_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_C_MEMO",              PV_DESC="Event C Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EVENT_C_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event C Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_C_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_D_MEMO",              PV_DESC="Event D Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EVENT_D_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event D Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_D_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_E_MEMO",              PV_DESC="Event E Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EVENT_E_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event E Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_E_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_F_MEMO",              PV_DESC="Event F Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EVENT_F_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event F Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_F_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_G_MEMO",              PV_DESC="Event G Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EVENT_G_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event G Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_G_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_H_MEMO",              PV_DESC="Event H Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EVENT_H_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event H Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_H_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+######### A - Magnetron
+#<<<--- add_digital("ChopPwrSysOK_MEMO",         PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:ChopPwrSysOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ChopPwrSysOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ChopVoltAlarm_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:ChopVoltAlarm_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ChopVoltAlarm_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ChopWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:ChopWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ChopWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("Sol1WtrTempOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Sol1WtrTempOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Sol1WtrTempOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Sol2WtrTempOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Sol2WtrTempOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Sol2WtrTempOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Sol1WtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Sol1WtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Sol1WtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Sol2WtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Sol2WtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Sol2WtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Sol1CurMaxErr_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Sol1CurMaxErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Sol1CurMaxErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Sol2CurMaxErr_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Sol2CurMaxErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Sol2CurMaxErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Str1HCurMaxErr_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Str1HCurMaxErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Str1HCurMaxErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Str2HCurMaxErr_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Str2HCurMaxErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Str2HCurMaxErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Str1VCurMaxErr_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Str1VCurMaxErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Str1VCurMaxErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Str2VCurMaxErr_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Str2VCurMaxErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Str2VCurMaxErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("Coil1PwrSuppOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil1PwrSuppOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil1PwrSuppOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Coil2PwrSuppOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil2PwrSuppOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil2PwrSuppOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Coil3PwrSuppOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil3PwrSuppOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil3PwrSuppOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#Coils water flow and temperature are in event C - Coils
+
+#<<<--- add_digital("HVITLidOpenR_MEMO",         PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:HVITLidOpenR_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "HVITLidOpenR_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVITOilTempOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:HVITOilTempOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "HVITOilTempOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("GndWtrTempMaxErr_MEMO",     PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:GndWtrTempMaxErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "GndWtrTempMaxErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVWtrTempMaxErr_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:HVWtrTempMaxErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "HVWtrTempMaxErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("RepWtrFlowOK_MEMO",         PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:RepWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "RepWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("IrisWtrTemp1Err_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:IrisWtrTemp1Err_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "IrisWtrTemp1Err_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("IrisWtrTemp2Err_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:IrisWtrTemp2Err_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "IrisWtrTemp2Err_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("IrisWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:IrisWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "IrisWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("EMUHWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EMUHWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EMUHWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EMUVWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EMUVWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EMUVWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("FCWtrFlowOK_MEMO",          PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:FCWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "FCWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EMUOK_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:EMUOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EMUOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("IBSWtrFlowOK_MEMO",         PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:IBSWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "IBSWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("CollWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:CollWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "CollWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("MatTrWtrFlowOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:MatTrWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "MatTrWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("PlasChWtrFlowOK_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:PlasChWtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "PlasChWtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("VacOK_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:VacOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "VacOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("VacPermit_MEMO",            PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:VacPermit_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "VacPermit_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ComRioOK_MEMO",             PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:ComRioOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ComRioOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("MPSOK_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:MPSOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "MPSOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVPSVolOK_Magtr_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:HVPSVolOK_Magtr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "HVPSVolOK_Magtr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("DPLOK_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:DPLOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "DPLOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+######### B - High Voltage
+#<<<--- add_digital("HVPfDoors_MEMO",            PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:HVPfDoors_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "HVPfDoors_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVPfRes_MEMO",              PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:HVPfRes_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "HVPfRes_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVPermit_MEMO",             PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:HVPermit_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "HVPermit_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ComIocOK_MEMO",             PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:ComIocOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ComIocOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Rep1VolOK_MEMO",            PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Rep1VolOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Rep1VolOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Rep2VolOK_MEMO",            PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Rep2VolOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Rep2VolOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("MagPulseModeOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:MagPulseModeOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "MagPulseModeOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ESTOP_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:ESTOP_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "ESTOP_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVPSConnErr_MEMO",          PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:HVPSConnErr_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "HVPSConnErr_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#VacOK, EMUHWtrFlowOK, EMUVWtrFlowOK and FCWtrFlowOK are in Event A
+
+
+
+######### C - Coils
+#<<<--- add_digital("Coil1WtrFlowOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil1WtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil1WtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Coil2WtrFlowOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil2WtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil2WtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Coil3WtrFlowOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil3WtrFlowOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil3WtrFlowOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Coil1WtrTempOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil1WtrTempOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil1WtrTempOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Coil2WtrTempOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil2WtrTempOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil2WtrTempOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("Coil3WtrTempOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:Coil3WtrTempOK_MEMO")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Signal Memorization")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "Coil3WtrTempOK_MEMO")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#ComIocOK and HVWtrTempMax are in Event A
+
+
+######### D - Solenoid 1
+#Sol1WtrTempOK, Sol1WtrFlowOK, GndWtrTempMaxErr are in Event A and ComIocOK in event B
+
+
+######### E - Solenoid 2
+#Sol1WtrTempOK, Sol1WtrFlowOK, GndWtrTempMaxErr are in Event A and ComIocOK in event B
+
+
+######### F - H2 Injection
+#VacOK, ComRioOK are in Event A
+
+
+######### G - Chopper
+#ChopPwrSysOK, ChopVoltAlarm, ChopWtrFlowOK are in Event A and ComIocOK is in Event B
+
+
+################## Mask Bits ##################
+
+######### A - Magnetron
+#<<<--- add_digital("F_MagtrEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_MagtrEnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_MagtrEnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_ChopWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_ChopWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_ChopWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_ChopPwrSysOK"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_ChopPwrSysOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_ChopPwrSysOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_ChopVoltAlarm"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_ChopVoltAlarm")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_ChopVoltAlarm")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_Sol1WtrTempOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Sol1WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Sol1WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Sol2WtrTempOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Sol2WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Sol2WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Sol1WtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Sol1WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Sol1WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Sol2WtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Sol2WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Sol2WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Sol1CurMaxErr"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Sol1CurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Sol1CurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Sol2CurMaxErr"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Sol2CurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Sol2CurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Str1HCurMaxErr"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Str1HCurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Str1HCurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Str2HCurMaxErr"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Str2HCurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Str2HCurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Str1VCurMaxErr"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Str1VCurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Str1VCurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Str2VCurMaxErr"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Str2VCurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Str2VCurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_Coil1WtrFlowOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil1WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil1WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil2WtrFlowOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil2WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil2WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil3WtrFlowOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil3WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil3WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil1WtrTempOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil1WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil1WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil2WtrTempOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil2WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil2WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil3WtrTempOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil3WtrTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil3WtrTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil1PwrSuppOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil1PwrSuppOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil1PwrSuppOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil2PwrSuppOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil2PwrSuppOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil2PwrSuppOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil3PwrSuppOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil3PwrSuppOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil3PwrSuppOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_HVITLidOpen"     ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_HVITLidOpen")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_HVITLidOpen")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_HVITOilTempOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_HVITOilTempOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_HVITOilTempOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_GndWtrTempMaxErr",   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_GndWtrTempMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_GndWtrTempMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_HVWtrTempMaxErr" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_HVWtrTempMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_HVWtrTempMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_RepWtrFlowOK"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_RepWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_RepWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Rep1VolOK"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Rep1VolOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Rep1VolOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Rep2VolOK"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Rep2VolOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Rep2VolOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+#<<<--- add_digital("F_IrisWtrTemp1Err" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_IrisWtrTemp1Err")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_IrisWtrTemp1Err")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_IrisWtrTemp2Err" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_IrisWtrTemp2Err")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_IrisWtrTemp2Err")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_IrisWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_IrisWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_IrisWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_FCWtrFlowOK"     ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_FCWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_FCWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_EMUHWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_EMUHWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_EMUHWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_EMUVWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_EMUVWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_EMUVWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_EMUOK"           ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_EMUOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_EMUOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_IBSWtrFlowOK"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_IBSWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_IBSWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_CollWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_CollWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_CollWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_MatTrWtrFlowOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_MatTrWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_MatTrWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_PlasChWtrFlowOK" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_PlasChWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_PlasChWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_ComRioOK"        ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_ComRioOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_ComRioOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_MPSOK"           ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_MPSOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_MPSOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_VacOK"           ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_VacOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_VacOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_VacPermit"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_VacPermit")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_VacPermit")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_HVPSVolOK_Magtr" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_HVPSVolOK_Magtr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_HVPSVolOK_Magtr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_MagPulseModeOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_MagPulseModeOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_MagPulseModeOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_DPLOK"           ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_DPLOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_DPLOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+######### B - High Voltage
+#<<<--- add_digital("F_HVITLckEnCmd"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_HVITLckEnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_HVITLckEnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#<<<--- add_digital("F_HVPfDoors"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_HVPfDoors")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_HVPfDoors")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_HVPfRes"         ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_HVPfRes")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_HVPfRes")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_HVPermit"        ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_HVPermit")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_HVPermit")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_ComIocOK"        ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_ComIocOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_ComIocOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#VacOK, EMUHWtrFlowOK, EMUVWtrFlowOK and FCWtrFlowOK are in Event A
+
+
+######### C - Coils
+#<<<--- add_digital("F_Coil1EnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil1EnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil1EnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil2EnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil2EnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil2EnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Coil3EnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Coil3EnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Coil3EnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+######### D - Solenoid 1
+#<<<--- add_digital("F_Sol1EnCmd"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Sol1EnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Sol1EnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Str1HEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Str1HEnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Str1HEnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Str1VEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Str1VEnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Str1VEnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+######### E - Solenoid 2
+#<<<--- add_digital("F_Sol2EnCmd"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Sol2EnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Sol2EnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Str2HEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Str2HEnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Str2HEnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_Str2VEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_Str2VEnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_Str2VEnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+######### F - H2 Injection
+#<<<--- add_digital("F_VacVVAOpenCmd"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_VacVVAOpenCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_VacVVAOpenCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+######### G - Chopper
+#<<<--- add_digital("F_ChopHVEnCmd"     ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_ChopHVEnCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_ChopHVEnCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+
+
+
+
+#<<<--- add_digital("F_ISrcOKtoMPS"     ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_ISrcOKtoMPS")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_ISrcOKtoMPS")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_MWPowerOn"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_MWPowerOn")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_MWPowerOn")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_VacVEVMCOK"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_VacVEVMCOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_VacVEVMCOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_GNDInletPres"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_GNDInletPres")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_GNDInletPres")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("F_GNDOutletPres"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+record(bi, "ISrc-010:ISS-Intf-HMI:F_GNDOutletPres")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Mask Bit ReadBack")
+	field(ONAM, "Mask ON!")
+	field(ZNAM, "Mask OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "F_GNDOutletPres")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+############################
+#COMMAND BLOCK
+############################
+#<<<--- define_command_block()
+
+##########
+########## ISrc-010:ISS-Intf-HMI EPICS -> PLC commands   ##########
+##########
+#<<<--- add_digital("EVENT_A_ACK",          PV_DESC="Event Acknowledge")
+record(bo, "ISrc-010:ISS-Intf-HMI:EVENT_A_ACK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event Acknowledge")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_A_ACK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_B_ACK",          PV_DESC="Event Acknowledge")
+record(bo, "ISrc-010:ISS-Intf-HMI:EVENT_B_ACK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event Acknowledge")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_B_ACK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_C_ACK",          PV_DESC="Event Acknowledge")
+record(bo, "ISrc-010:ISS-Intf-HMI:EVENT_C_ACK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event Acknowledge")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_C_ACK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_D_ACK",          PV_DESC="Event Acknowledge")
+record(bo, "ISrc-010:ISS-Intf-HMI:EVENT_D_ACK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event Acknowledge")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_D_ACK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_E_ACK",          PV_DESC="Event Acknowledge")
+record(bo, "ISrc-010:ISS-Intf-HMI:EVENT_E_ACK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event Acknowledge")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_E_ACK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_F_ACK",          PV_DESC="Event Acknowledge")
+record(bo, "ISrc-010:ISS-Intf-HMI:EVENT_F_ACK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event Acknowledge")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_F_ACK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_G_ACK",          PV_DESC="Event Acknowledge")
+record(bo, "ISrc-010:ISS-Intf-HMI:EVENT_G_ACK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event Acknowledge")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_G_ACK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EVENT_H_ACK",          PV_DESC="Event Acknowledge")
+record(bo, "ISrc-010:ISS-Intf-HMI:EVENT_H_ACK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Event Acknowledge")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "EVENT_H_ACK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+############################
+#PARAMETER BLOCK
+############################
+#<<<--- define_parameter_block()
+
+##########
+########## ISrc-010:ISS-Intf-HMI EPICS -> PLC parameters ##########
+##########
+#<<<--- add_analog("VacLevelMaxS",    "REAL",                 PV_DESC="Vacuum Max Level")
+record(ao, "ISrc-010:ISS-Intf-HMI:VacLevelMaxS")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Vacuum Max Level")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-HMI_iDB")
+	info("plc_variable", "VacLevelMaxS")
+	info(autosaveFields_pass0, "VAL")
+}
+
+record(fanout, "ISrc-010:ISS-Intf-HMI:UploadParametersS") {
+	field(LNK1, "ISrc-010:ISS-Intf-HMI:VacLevelMaxS")
+}
+
+
+
+##########
+########## ISrc-010:ISS-Intf-MPS ##########
+##########
+##########
+
+############################  ISRC_LEBT interface with MPS  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Intf-MPS PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("MPSOK",       PV_DESC="Machine Protection System Status",    PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-MPS:MPSOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Machine Protection System Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-MPS_iDB")
+	info("plc_variable", "MPSOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("ISrcOKtoMPS", PV_DESC="ISrc Interlock System Status to MPS", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-MPS:ISrcOKtoMPS")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "ISrc Interlock System Status to MPS")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-MPS_iDB")
+	info("plc_variable", "ISrcOKtoMPS")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Intf-PSS ##########
+##########
+##########
+
+############################  ISRC_LEBT interface with PSS  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Intf-PSS PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PSSOK",     PV_DESC="Personnel Safety System Status",  PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-PSS:PSSOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Personnel Safety System Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-PSS_iDB")
+	info("plc_variable", "PSSOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("HVPermitR", PV_DESC="HV Permit from PSS",              PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-PSS:HVPermitR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "HV Permit from PSS")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-PSS_iDB")
+	info("plc_variable", "HVPermitR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-Intf-Vac ##########
+##########
+##########
+
+############################  ISRC_LEBT interface with Vacuum System  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Intf-Vac PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("VacOK",     PV_DESC="ISrc Vacuum System Status",      PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-Vac:VacOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "ISrc Vacuum System Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-Vac_iDB")
+	info("plc_variable", "VacOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("VacPermit", PV_DESC="ISrc LEBT Vacuum System Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Intf-Vac:VacPermit")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "ISrc LEBT Vacuum System Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Intf-Vac_iDB")
+	info("plc_variable", "VacPermit")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:ID-Iris ##########
+##########
+##########
+
+############################  LEBT Iris  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:ID-Iris PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK",          PV_DESC="IRIS Water Flow Status",          PV_ONAM="OK",  PV_ZNAM="NOK")
+record(bi, "LEBT-010:ID-Iris:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "IRIS Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:ID-Iris_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempMax1Err",     PV_DESC="IRIS Water Temperature 1 Status", PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:ID-Iris:WtrTempMax1Err")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "IRIS Water Temperature 1 Status")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:ID-Iris_iDB")
+	info("plc_variable", "WtrTempMax1Err")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempMax2Err",     PV_DESC="IRIS Water Temperature 2 Status", PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:ID-Iris:WtrTempMax2Err")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "IRIS Water Temperature 2 Status")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:ID-Iris_iDB")
+	info("plc_variable", "WtrTempMax2Err")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+#add_analog("WtrTemp1R", "REAL",  PV_DESC = "Iris Temperature Sensor 1")
+#add_analog("WtrTemp2R", "REAL",  PV_DESC = "Iris Temperature Sensor 2")
+
+
+
+##########
+########## ISrc-010:ISS-Magtr ##########
+##########
+##########
+
+############################  ISRC Magnetron  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-Magtr PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("EnCmdR",      PV_DESC="Magnetron Enable Command",  PV_ONAM="ON",        PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Magtr:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Magnetron Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Magtr_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("MWPowerOnR",  PV_DESC="Magnetron MW Power Status", PV_ONAM="ON",        PV_ZNAM="OFF")
+record(bi, "ISrc-010:ISS-Magtr:MWPowerOnR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Magnetron MW Power Status")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Magtr_iDB")
+	info("plc_variable", "MWPowerOnR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("PulseModeOK", PV_DESC="Magnetron Pulse Mode OK",   PV_ONAM="OK",        PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-Magtr:PulseModeOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Magnetron Pulse Mode OK")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Magtr_iDB")
+	info("plc_variable", "PulseModeOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+############################
+#PARAMETER BLOCK
+############################
+#<<<--- define_parameter_block()
+
+##########
+########## ISrc-010:ISS-Magtr EPICS -> PLC parameters ##########
+##########
+#<<<--- add_digital("iPulseMode", PV_DESC="Magnetron Pulse Mode",      PV_ONAM="Continous", PV_ZNAM="Pulsed")
+record(bo, "ISrc-010:ISS-Magtr:iPulseMode")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Magnetron Pulse Mode")
+	field(ONAM, "Continous")
+	field(ZNAM, "Pulsed")
+	info("plc_datablock", "DEV_ISrc-010:ISS-Magtr_iDB")
+	info("plc_variable", "iPulseMode")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+#<<<--- add_verbatim()
+
+
+record(bo, "ISrc-010:ISS-Magtr:iPulseModeDirect")
+{
+  field(DESC, "Redirect Magnetron PulseMode to Interlock PLC")
+  field(DTYP, "Soft Channel")
+  field(FLNK, "ISrc-010:ISS-Magtr:iPulseMode")
+  field(OUT, "ISrc-010:ISS-Magtr:iPulseMode")
+  field(DOL, "ISrc-010:ISS-Magtr:Setup.B3 CP")
+  field(OMSL, "closed_loop")
+}
+
+record(fanout, "ISrc-010:ISS-Magtr:UploadParametersS") {
+	field(LNK1, "ISrc-010:ISS-Magtr:iPulseMode")
+}
+
+
+
+##########
+########## ISrc-010:ISS-MatTr ##########
+##########
+##########
+
+############################  ISRC_LEBT Matching Transformer  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-MatTr PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Matching Transformer Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-MatTr:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Matching Transformer Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-MatTr_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:PBI-EMU-001 ##########
+##########
+##########
+
+############################  LEBT EMU  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PBI-EMU-001 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("HorWtrFlowOK", PV_DESC="Hor. EMU Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:PBI-EMU-001:HorWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Hor. EMU Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:PBI-EMU-001_iDB")
+	info("plc_variable", "HorWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("VerWtrFlowOK", PV_DESC="Ver. EMU Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:PBI-EMU-001:VerWtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Ver. EMU Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:PBI-EMU-001_iDB")
+	info("plc_variable", "VerWtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:PBI-FC-001 ##########
+##########
+##########
+
+############################  LEBT FaradayCup  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PBI-FC-001 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Faraday Cup Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:PBI-FC-001:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Faraday Cup Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:PBI-FC-001_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:PwrC-CoilPS-01 ##########
+##########
+##########
+
+############################  ISRC_LEBT Coil Power Supply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:PwrC-CoilPS-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PwrSuppOK", PV_DESC="Coil Power Supply Status",         PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:PwrC-CoilPS-01:PwrSuppOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Coil Power Supply Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-CoilPS-01_iDB")
+	info("plc_variable", "PwrSuppOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",    PV_DESC="Coil Power Supply Enable Command", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:PwrC-CoilPS-01:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Coil Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-CoilPS-01_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:PwrC-CoilPS-02 ##########
+##########
+##########
+
+############################  ISRC_LEBT Coil Power Supply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:PwrC-CoilPS-02 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PwrSuppOK", PV_DESC="Coil Power Supply Status",         PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:PwrC-CoilPS-02:PwrSuppOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Coil Power Supply Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-CoilPS-02_iDB")
+	info("plc_variable", "PwrSuppOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",    PV_DESC="Coil Power Supply Enable Command", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:PwrC-CoilPS-02:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Coil Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-CoilPS-02_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:PwrC-CoilPS-03 ##########
+##########
+##########
+
+############################  ISRC_LEBT Coil Power Supply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:PwrC-CoilPS-03 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PwrSuppOK", PV_DESC="Coil Power Supply Status",         PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:PwrC-CoilPS-03:PwrSuppOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Coil Power Supply Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-CoilPS-03_iDB")
+	info("plc_variable", "PwrSuppOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",    PV_DESC="Coil Power Supply Enable Command", PV_ONAM="ON", PV_ZNAM="OFF")
+record(bi, "ISrc-010:PwrC-CoilPS-03:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Coil Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-CoilPS-03_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:PwrC-RepPS-01 ##########
+##########
+##########
+
+############################  ISrc and LEBT Repeller's Power Supply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:PwrC-RepPS-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("VolOK",      PV_DESC="Repeller Voltage Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:PwrC-RepPS-01:VolOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Repeller Voltage Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-RepPS-01_iDB")
+	info("plc_variable", "VolOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+############################
+#PARAMETER BLOCK
+############################
+#<<<--- define_parameter_block()
+
+##########
+########## ISrc-010:PwrC-RepPS-01 EPICS -> PLC parameters ##########
+##########
+#<<<--- add_analog("iVolR","REAL", PV_DESC="Repeller's VolR Value")
+record(ao, "ISrc-010:PwrC-RepPS-01:iVolR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Repeller's VolR Value")
+	info("plc_datablock", "DEV_ISrc-010:PwrC-RepPS-01_iDB")
+	info("plc_variable", "iVolR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+#<<<--- add_verbatim()
+
+
+record(ao, "ISrc-010:PwrC-RepPS-01:iVolRDirect")
+{
+  field(DESC, "Redirect Rep. VolR to Interlock PLC")
+  field(DTYP, "Soft Channel")
+  field(FLNK, "ISrc-010:PwrC-RepPS-01:iVolR")
+  field(OUT, "ISrc-010:PwrC-RepPS-01:iVolR")
+  field(DOL, "ISrc-010:PwrC-RepPS-01:VolR CP")
+  field(OMSL, "closed_loop")
+}
+
+record(fanout, "ISrc-010:PwrC-RepPS-01:UploadParametersS") {
+	field(LNK1, "ISrc-010:PwrC-RepPS-01:iVolR")
+}
+
+
+
+##########
+########## LEBT-010:PwrC-RepPS-01 ##########
+##########
+##########
+
+############################  ISrc and LEBT Repeller's Power Supply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PwrC-RepPS-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("VolOK",      PV_DESC="Repeller Voltage Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "LEBT-010:PwrC-RepPS-01:VolOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Repeller Voltage Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-RepPS-01_iDB")
+	info("plc_variable", "VolOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+############################
+#PARAMETER BLOCK
+############################
+#<<<--- define_parameter_block()
+
+##########
+########## LEBT-010:PwrC-RepPS-01 EPICS -> PLC parameters ##########
+##########
+#<<<--- add_analog("iVolR","REAL", PV_DESC="Repeller's VolR Value")
+record(ao, "LEBT-010:PwrC-RepPS-01:iVolR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Repeller's VolR Value")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-RepPS-01_iDB")
+	info("plc_variable", "iVolR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+#<<<--- add_verbatim()
+
+
+record(ao, "LEBT-010:PwrC-RepPS-01:iVolRDirect")
+{
+  field(DESC, "Redirect Rep. VolR to Interlock PLC")
+  field(DTYP, "Soft Channel")
+  field(FLNK, "LEBT-010:PwrC-RepPS-01:iVolR")
+  field(OUT, "LEBT-010:PwrC-RepPS-01:iVolR")
+  field(DOL, "LEBT-010:PwrC-RepPS-01:VolR CP")
+  field(OMSL, "closed_loop")
+}
+
+record(fanout, "LEBT-010:PwrC-RepPS-01:UploadParametersS") {
+	field(LNK1, "LEBT-010:PwrC-RepPS-01:iVolR")
+}
+
+
+
+##########
+########## LEBT-010:PwrC-PSCH-01 ##########
+##########
+##########
+
+############################  LEBT Solenoids and Steerers PowerSupply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PwrC-PSCH-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("CurR-CT", "REAL", PV_DESC = "Curent Read from Current TrANSFORMER")
+record(ai, "LEBT-010:PwrC-PSCH-01:CurR-CT")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Curent Read from Current TrANSFORMER")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCH-01_iDB")
+	info("plc_variable", "CurR-CT")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",        PV_DESC = "Power Supply Enable Command", PV_ONAM="ON",  PV_ZNAM="OFF")
+record(bi, "LEBT-010:PwrC-PSCH-01:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCH-01_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("CurMaxErr",     PV_DESC = "Reached Max Curent",         PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:PwrC-PSCH-01:CurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Reached Max Curent")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCH-01_iDB")
+	info("plc_variable", "CurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:PwrC-PSCH-02 ##########
+##########
+##########
+
+############################  LEBT Solenoids and Steerers PowerSupply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PwrC-PSCH-02 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("CurR-CT", "REAL", PV_DESC = "Curent Read from Current TrANSFORMER")
+record(ai, "LEBT-010:PwrC-PSCH-02:CurR-CT")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Curent Read from Current TrANSFORMER")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCH-02_iDB")
+	info("plc_variable", "CurR-CT")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",        PV_DESC = "Power Supply Enable Command", PV_ONAM="ON",  PV_ZNAM="OFF")
+record(bi, "LEBT-010:PwrC-PSCH-02:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCH-02_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("CurMaxErr",     PV_DESC = "Reached Max Curent",         PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:PwrC-PSCH-02:CurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Reached Max Curent")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCH-02_iDB")
+	info("plc_variable", "CurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:PwrC-PSCV-01 ##########
+##########
+##########
+
+############################  LEBT Solenoids and Steerers PowerSupply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PwrC-PSCV-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("CurR-CT", "REAL", PV_DESC = "Curent Read from Current TrANSFORMER")
+record(ai, "LEBT-010:PwrC-PSCV-01:CurR-CT")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Curent Read from Current TrANSFORMER")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCV-01_iDB")
+	info("plc_variable", "CurR-CT")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",        PV_DESC = "Power Supply Enable Command", PV_ONAM="ON",  PV_ZNAM="OFF")
+record(bi, "LEBT-010:PwrC-PSCV-01:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCV-01_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("CurMaxErr",     PV_DESC = "Reached Max Curent",         PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:PwrC-PSCV-01:CurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Reached Max Curent")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCV-01_iDB")
+	info("plc_variable", "CurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:PwrC-PSCV-02 ##########
+##########
+##########
+
+############################  LEBT Solenoids and Steerers PowerSupply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PwrC-PSCV-02 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("CurR-CT", "REAL", PV_DESC = "Curent Read from Current TrANSFORMER")
+record(ai, "LEBT-010:PwrC-PSCV-02:CurR-CT")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Curent Read from Current TrANSFORMER")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCV-02_iDB")
+	info("plc_variable", "CurR-CT")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",        PV_DESC = "Power Supply Enable Command", PV_ONAM="ON",  PV_ZNAM="OFF")
+record(bi, "LEBT-010:PwrC-PSCV-02:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCV-02_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("CurMaxErr",     PV_DESC = "Reached Max Curent",         PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:PwrC-PSCV-02:CurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Reached Max Curent")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-PSCV-02_iDB")
+	info("plc_variable", "CurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:PwrC-SolPS-01 ##########
+##########
+##########
+
+############################  LEBT Solenoids and Steerers PowerSupply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PwrC-SolPS-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("CurR-CT", "REAL", PV_DESC = "Curent Read from Current TrANSFORMER")
+record(ai, "LEBT-010:PwrC-SolPS-01:CurR-CT")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Curent Read from Current TrANSFORMER")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-SolPS-01_iDB")
+	info("plc_variable", "CurR-CT")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",        PV_DESC = "Power Supply Enable Command", PV_ONAM="ON",  PV_ZNAM="OFF")
+record(bi, "LEBT-010:PwrC-SolPS-01:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-SolPS-01_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("CurMaxErr",     PV_DESC = "Reached Max Curent",         PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:PwrC-SolPS-01:CurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Reached Max Curent")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-SolPS-01_iDB")
+	info("plc_variable", "CurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:PwrC-SolPS-02 ##########
+##########
+##########
+
+############################  LEBT Solenoids and Steerers PowerSupply  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:PwrC-SolPS-02 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("CurR-CT", "REAL", PV_DESC = "Curent Read from Current TrANSFORMER")
+record(ai, "LEBT-010:PwrC-SolPS-02:CurR-CT")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Curent Read from Current TrANSFORMER")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-SolPS-02_iDB")
+	info("plc_variable", "CurR-CT")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("EnCmdR",        PV_DESC = "Power Supply Enable Command", PV_ONAM="ON",  PV_ZNAM="OFF")
+record(bi, "LEBT-010:PwrC-SolPS-02:EnCmdR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Power Supply Enable Command")
+	field(ONAM, "ON")
+	field(ZNAM, "OFF")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-SolPS-02_iDB")
+	info("plc_variable", "EnCmdR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("CurMaxErr",     PV_DESC = "Reached Max Curent",         PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "LEBT-010:PwrC-SolPS-02:CurMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Reached Max Curent")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_LEBT-010:PwrC-SolPS-02_iDB")
+	info("plc_variable", "CurMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:ISS-PlasCh ##########
+##########
+##########
+
+############################  ISRC Plasma Chamber  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:ISS-PlasCh PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Plasma Chamber Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:ISS-PlasCh:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Plasma Chamber Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:ISS-PlasCh_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:BMD-Rep-01 ##########
+##########
+##########
+
+############################  ISrc and LEBT Repeller  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:BMD-Rep-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("WtrFlowOK", PV_DESC="Repeller Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")
+record(bi, "ISrc-010:BMD-Rep-01:WtrFlowOK")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Repeller Water Flow Status")
+	field(ONAM, "OK")
+	field(ZNAM, "NOK")
+	info("plc_datablock", "DEV_ISrc-010:BMD-Rep-01_iDB")
+	info("plc_variable", "WtrFlowOK")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:BMD-CH-01 ##########
+##########
+##########
+
+##############################  LEBT Steerer  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:BMD-CH-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PolR",                     PV_DESC="Steerer's Polarity",                    PV_ONAM="Positive",          PV_ZNAM="Negative")
+record(bi, "LEBT-010:BMD-CH-01:PolR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer's Polarity")
+	field(ONAM, "Positive")
+	field(ZNAM, "Negative")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CH-01_iDB")
+	info("plc_variable", "PolR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+############################
+#COMMAND BLOCK
+############################
+#<<<--- define_command_block()
+
+##########
+########## LEBT-010:BMD-CH-01 EPICS -> PLC commands   ##########
+##########
+#<<<--- add_digital("PolPosCmd",               PV_DESC="Steerer PS Positive Polarity Command",   PV_ONAM="Positive",          PV_ZNAM="")
+record(bo, "LEBT-010:BMD-CH-01:PolPosCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer PS Positive Polarity Command")
+	field(ONAM, "Positive")
+	field(ZNAM, "")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CH-01_iDB")
+	info("plc_variable", "PolPosCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("PolNegCmd",               PV_DESC="Steerer PS Negative Polarity Command",   PV_ONAM="Negative",          PV_ZNAM="")
+record(bo, "LEBT-010:BMD-CH-01:PolNegCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer PS Negative Polarity Command")
+	field(ONAM, "Negative")
+	field(ZNAM, "")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CH-01_iDB")
+	info("plc_variable", "PolNegCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:BMD-CH-02 ##########
+##########
+##########
+
+##############################  LEBT Steerer  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:BMD-CH-02 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PolR",                     PV_DESC="Steerer's Polarity",                    PV_ONAM="Positive",          PV_ZNAM="Negative")
+record(bi, "LEBT-010:BMD-CH-02:PolR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer's Polarity")
+	field(ONAM, "Positive")
+	field(ZNAM, "Negative")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CH-02_iDB")
+	info("plc_variable", "PolR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+############################
+#COMMAND BLOCK
+############################
+#<<<--- define_command_block()
+
+##########
+########## LEBT-010:BMD-CH-02 EPICS -> PLC commands   ##########
+##########
+#<<<--- add_digital("PolPosCmd",               PV_DESC="Steerer PS Positive Polarity Command",   PV_ONAM="Positive",          PV_ZNAM="")
+record(bo, "LEBT-010:BMD-CH-02:PolPosCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer PS Positive Polarity Command")
+	field(ONAM, "Positive")
+	field(ZNAM, "")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CH-02_iDB")
+	info("plc_variable", "PolPosCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("PolNegCmd",               PV_DESC="Steerer PS Negative Polarity Command",   PV_ONAM="Negative",          PV_ZNAM="")
+record(bo, "LEBT-010:BMD-CH-02:PolNegCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer PS Negative Polarity Command")
+	field(ONAM, "Negative")
+	field(ZNAM, "")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CH-02_iDB")
+	info("plc_variable", "PolNegCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:BMD-CV-01 ##########
+##########
+##########
+
+##############################  LEBT Steerer  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:BMD-CV-01 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PolR",                     PV_DESC="Steerer's Polarity",                    PV_ONAM="Positive",          PV_ZNAM="Negative")
+record(bi, "LEBT-010:BMD-CV-01:PolR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer's Polarity")
+	field(ONAM, "Positive")
+	field(ZNAM, "Negative")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CV-01_iDB")
+	info("plc_variable", "PolR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+############################
+#COMMAND BLOCK
+############################
+#<<<--- define_command_block()
+
+##########
+########## LEBT-010:BMD-CV-01 EPICS -> PLC commands   ##########
+##########
+#<<<--- add_digital("PolPosCmd",               PV_DESC="Steerer PS Positive Polarity Command",   PV_ONAM="Positive",          PV_ZNAM="")
+record(bo, "LEBT-010:BMD-CV-01:PolPosCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer PS Positive Polarity Command")
+	field(ONAM, "Positive")
+	field(ZNAM, "")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CV-01_iDB")
+	info("plc_variable", "PolPosCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("PolNegCmd",               PV_DESC="Steerer PS Negative Polarity Command",   PV_ONAM="Negative",          PV_ZNAM="")
+record(bo, "LEBT-010:BMD-CV-01:PolNegCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer PS Negative Polarity Command")
+	field(ONAM, "Negative")
+	field(ZNAM, "")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CV-01_iDB")
+	info("plc_variable", "PolNegCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## LEBT-010:BMD-CV-02 ##########
+##########
+##########
+
+##############################  LEBT Steerer  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## LEBT-010:BMD-CV-02 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("PolR",                     PV_DESC="Steerer's Polarity",                    PV_ONAM="Positive",          PV_ZNAM="Negative")
+record(bi, "LEBT-010:BMD-CV-02:PolR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer's Polarity")
+	field(ONAM, "Positive")
+	field(ZNAM, "Negative")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CV-02_iDB")
+	info("plc_variable", "PolR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+############################
+#COMMAND BLOCK
+############################
+#<<<--- define_command_block()
+
+##########
+########## LEBT-010:BMD-CV-02 EPICS -> PLC commands   ##########
+##########
+#<<<--- add_digital("PolPosCmd",               PV_DESC="Steerer PS Positive Polarity Command",   PV_ONAM="Positive",          PV_ZNAM="")
+record(bo, "LEBT-010:BMD-CV-02:PolPosCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer PS Positive Polarity Command")
+	field(ONAM, "Positive")
+	field(ZNAM, "")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CV-02_iDB")
+	info("plc_variable", "PolPosCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("PolNegCmd",               PV_DESC="Steerer PS Negative Polarity Command",   PV_ONAM="Negative",          PV_ZNAM="")
+record(bo, "LEBT-010:BMD-CV-02:PolNegCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Steerer PS Negative Polarity Command")
+	field(ONAM, "Negative")
+	field(ZNAM, "")
+	info("plc_datablock", "DEV_LEBT-010:BMD-CV-02_iDB")
+	info("plc_variable", "PolNegCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:Vac-VVA-01100 ##########
+##########
+##########
+
+############################  ISRC_LEBT H2 valve in HV platform  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:Vac-VVA-01100 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_digital("OpenR",     PV_DESC="H2 Isolation Valve Open Feedback", PV_ONAM="Open", PV_ZNAM="Close")
+record(bi, "ISrc-010:Vac-VVA-01100:OpenR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "H2 Isolation Valve Open Feedback")
+	field(ONAM, "Open")
+	field(ZNAM, "Close")
+	info("plc_datablock", "DEV_ISrc-010:Vac-VVA-01100_iDB")
+	info("plc_variable", "OpenR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("OpenCmdRB", PV_DESC="H2 Isolation Valve Open Command",  PV_ONAM="Open", PV_ZNAM="Close")
+record(bi, "ISrc-010:Vac-VVA-01100:OpenCmdRB")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "H2 Isolation Valve Open Command")
+	field(ONAM, "Open")
+	field(ZNAM, "Close")
+	info("plc_datablock", "DEV_ISrc-010:Vac-VVA-01100_iDB")
+	info("plc_variable", "OpenCmdRB")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+############################
+#COMMAND BLOCK
+############################
+#<<<--- define_command_block()
+
+##########
+########## ISrc-010:Vac-VVA-01100 EPICS -> PLC commands   ##########
+##########
+#<<<--- add_digital("OpenCmd",         PV_DESC="H2 Isolation Valve Open Command")
+record(bo, "ISrc-010:Vac-VVA-01100:OpenCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "H2 Isolation Valve Open Command")
+	info("plc_datablock", "DEV_ISrc-010:Vac-VVA-01100_iDB")
+	info("plc_variable", "OpenCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("CloseCmd",        PV_DESC="H2 Isolation Valve Close Command")
+record(bo, "ISrc-010:Vac-VVA-01100:CloseCmd")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "H2 Isolation Valve Close Command")
+	info("plc_datablock", "DEV_ISrc-010:Vac-VVA-01100_iDB")
+	info("plc_variable", "CloseCmd")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:WtrC-PT-001 ##########
+##########
+##########
+
+############################  ISRC_LEBT Water Cooling Pressure Transmitter  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:WtrC-PT-001 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("PresR",  "REAL",  PV_DESC = "Cooling Water Pressure value")
+record(ai, "ISrc-010:WtrC-PT-001:PresR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Cooling Water Pressure value")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-PT-001_iDB")
+	info("plc_variable", "PresR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:WtrC-PT-002 ##########
+##########
+##########
+
+############################  ISRC_LEBT Water Cooling Pressure Transmitter  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:WtrC-PT-002 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("PresR",  "REAL",  PV_DESC = "Cooling Water Pressure value")
+record(ai, "ISrc-010:WtrC-PT-002:PresR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Cooling Water Pressure value")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-PT-002_iDB")
+	info("plc_variable", "PresR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:WtrC-PT-011 ##########
+##########
+##########
+
+############################  ISRC_LEBT Water Cooling Pressure Transmitter  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:WtrC-PT-011 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("PresR",  "REAL",  PV_DESC = "Cooling Water Pressure value")
+record(ai, "ISrc-010:WtrC-PT-011:PresR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Cooling Water Pressure value")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-PT-011_iDB")
+	info("plc_variable", "PresR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:WtrC-PT-012 ##########
+##########
+##########
+
+############################  ISRC_LEBT Water Cooling Pressure Transmitter  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:WtrC-PT-012 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("PresR",  "REAL",  PV_DESC = "Cooling Water Pressure value")
+record(ai, "ISrc-010:WtrC-PT-012:PresR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Cooling Water Pressure value")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-PT-012_iDB")
+	info("plc_variable", "PresR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:WtrC-TT-001 ##########
+##########
+##########
+
+############################  ISRC_LEBT Water Cooling Temperature Transmitter  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:WtrC-TT-001 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("TempR", "REAL",  PV_DESC = "Water Temperature value")
+record(ai, "ISrc-010:WtrC-TT-001:TempR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temperature value")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-TT-001_iDB")
+	info("plc_variable", "TempR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempMaxErr", PV_DESC = "Water Temp. Reached Max", PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "ISrc-010:WtrC-TT-001:WtrTempMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temp. Reached Max")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-TT-001_iDB")
+	info("plc_variable", "WtrTempMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:WtrC-TT-011 ##########
+##########
+##########
+
+############################  ISRC_LEBT Water Cooling Temperature Transmitter  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:WtrC-TT-011 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("TempR", "REAL",  PV_DESC = "Water Temperature value")
+record(ai, "ISrc-010:WtrC-TT-011:TempR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temperature value")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-TT-011_iDB")
+	info("plc_variable", "TempR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempMaxErr", PV_DESC = "Water Temp. Reached Max", PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "ISrc-010:WtrC-TT-011:WtrTempMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temp. Reached Max")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-TT-011_iDB")
+	info("plc_variable", "WtrTempMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+
+
+##########
+########## ISrc-010:WtrC-TT-012 ##########
+##########
+##########
+
+############################  ISRC_LEBT Water Cooling Temperature Transmitter  ##############################
+############################
+#STATUS BLOCK
+############################
+#<<<--- define_status_block()
+
+##########
+########## ISrc-010:WtrC-TT-012 PLC   -> EPICS status   ##########
+##########
+#<<<--- add_analog("TempR", "REAL",  PV_DESC = "Water Temperature value")
+record(ai, "ISrc-010:WtrC-TT-012:TempR")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temperature value")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-TT-012_iDB")
+	info("plc_variable", "TempR")
+	info(autosaveFields_pass0, "VAL")
+}
+
+#<<<--- add_digital("WtrTempMaxErr", PV_DESC = "Water Temp. Reached Max", PV_ONAM="NOK", PV_ZNAM="OK")
+record(bi, "ISrc-010:WtrC-TT-012:WtrTempMaxErr")
+{
+	field(DISS, "INVALID")
+	field(DISV, "0")
+	field(SDIS, "ISrc-010:Ctrl-PLC-01:PLCHashCorrectR CP")
+	field(DESC, "Water Temp. Reached Max")
+	field(ONAM, "NOK")
+	field(ZNAM, "OK")
+	info("plc_datablock", "DEV_ISrc-010:WtrC-TT-012_iDB")
+	info("plc_variable", "WtrTempMaxErr")
+	info(autosaveFields_pass0, "VAL")
+}
+
+
+

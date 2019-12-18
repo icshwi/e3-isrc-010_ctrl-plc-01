@@ -1,0 +1,14 @@
+############################  ISRC_LEBT H2 valve in HV platform  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("OpenR",     PV_DESC="H2 Isolation Valve Open Feedback", PV_ONAM="Open", PV_ZNAM="Close")
+add_digital("OpenCmdRB", PV_DESC="H2 Isolation Valve Open Command",  PV_ONAM="Open", PV_ZNAM="Close")
+
+############################
+#  COMMAND BLOCK
+############################ 
+define_command_block()
+add_digital("OpenCmd",         PV_DESC="H2 Isolation Valve Open Command")
+add_digital("CloseCmd",        PV_DESC="H2 Isolation Valve Close Command")

@@ -1,0 +1,7 @@
+############################  ISRC HV Isolation Transformer  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("LidOpenR",    PV_DESC="Isol Transf Lid Status",                 PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("OilTempOK",   PV_DESC="Isol Transf Oil Temperature Switch",     PV_ONAM="OK", PV_ZNAM="NOK")

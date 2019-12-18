@@ -1,0 +1,50 @@
+############################  ISrc HVPS  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("ITLckEnCmdR",     PV_DESC="High Voltage Power Supply Enable Command", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("HVPSVolOK_Magtr", PV_DESC="HV Voltage Status for Magnetron",          PV_ONAM="OK", PV_ZNAM="NOK!")
+
+############################
+#  COMMAND BLOCK
+############################ 
+define_command_block()
+add_digital("ESTOP",           PV_DESC="HVPS Emergency Stop")
+
+
+############################
+#  PARAMETER BLOCK
+############################ 
+define_parameter_block()
+add_analog("iVolR", "REAL", PV_DESC="HVPS VolR Value")
+add_digital("EPICSConnErr",    PV_DESC="HVPS<->EPICS Conn. Error")
+
+
+
+
+add_verbatim("""
+
+record(ao, "[PLCF#INSTALLATION_SLOT]:iVolRBDirect")
+{
+  field(DESC, "Redirect HVPS VolR to Interlock PLC")
+  field(DTYP, "Soft Channel")
+  field(FLNK, "[PLCF#INSTALLATION_SLOT]:iVolR")
+  field(OUT, "[PLCF#INSTALLATION_SLOT]:iVolR")
+  field(DOL, "[PLCF#INSTALLATION_SLOT]:VolR CP")
+  field(OMSL, "closed_loop")
+}
+
+record(bo, "[PLCF#INSTALLATION_SLOT]:iEPICSConnErr")
+{
+  field(DESC, "Redirect HVPS<->EPICS Conn. Error")
+  field(DTYP, "Soft Channel")
+  field(FLNK, "[PLCF#INSTALLATION_SLOT]:EPICSConnErr")
+  field(OUT, "[PLCF#INSTALLATION_SLOT]:EPICSConnErr")
+  field(DOL, "[PLCF#INSTALLATION_SLOT]:PwrR.SEVR CP MSI")
+  field(IVOA, "Set output to IVOV")
+  field(IVOV, "1")
+  field(OMSL, "closed_loop")
+}
+
+""")

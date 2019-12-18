@@ -1,0 +1,6 @@
+############################  LEBT FaradayCup  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("WtrFlowOK", PV_DESC="Faraday Cup Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")

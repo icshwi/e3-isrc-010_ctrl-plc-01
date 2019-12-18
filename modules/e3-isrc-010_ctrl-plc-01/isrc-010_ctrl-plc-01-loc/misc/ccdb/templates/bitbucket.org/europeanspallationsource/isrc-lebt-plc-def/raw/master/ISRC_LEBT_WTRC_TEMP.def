@@ -1,0 +1,7 @@
+############################  ISRC_LEBT Water Cooling Temperature Transmitter  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_analog("TempR", "REAL",  PV_DESC = "Water Temperature value")
+add_digital("WtrTempMaxErr", PV_DESC = "Water Temp. Reached Max", PV_ONAM="NOK", PV_ZNAM="OK")

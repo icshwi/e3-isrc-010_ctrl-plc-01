@@ -1,0 +1,14 @@
+##############################  LEBT Steerer  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("PolR",                     PV_DESC="Steerer's Polarity",                    PV_ONAM="Positive",          PV_ZNAM="Negative")
+
+
+############################
+#  COMMAND BLOCK
+############################ 
+define_command_block()
+add_digital("PolPosCmd",               PV_DESC="Steerer PS Positive Polarity Command",   PV_ONAM="Positive",          PV_ZNAM="")
+add_digital("PolNegCmd",               PV_DESC="Steerer PS Negative Polarity Command",   PV_ONAM="Negative",          PV_ZNAM="")

@@ -1,0 +1,17 @@
+############################  LEBT Chopper  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("PwrSysOK",        PV_DESC="Chopper Power System Status",    PV_ONAM="OK",  PV_ZNAM="NOK")
+add_digital("ChopVoltAlarmR",  PV_DESC="Chopper Chopping Voltage Alarm", PV_ONAM="NOK", PV_ZNAM="OK")
+add_digital("WtrFlowOK",       PV_DESC="Chopper Water Flow Status",      PV_ONAM="OK",  PV_ZNAM="NOK")
+add_digital("HVEnCmdRB",       PV_DESC="Chopper HV Enable Cmd ReadBack", PV_ONAM="ON",  PV_ZNAM="OFF")
+
+
+############################
+#  COMMAND BLOCK
+############################ 
+define_command_block()
+add_digital("HVEnOnCmd",         PV_DESC="Chopper High Voltage Enable Command")
+add_digital("HVEnOffCmd",        PV_DESC="Chopper High Voltage Disable Command")

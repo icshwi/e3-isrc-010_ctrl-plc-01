@@ -1,0 +1,6 @@
+############################  ISrc and LEBT Repeller  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("WtrFlowOK", PV_DESC="Repeller Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")

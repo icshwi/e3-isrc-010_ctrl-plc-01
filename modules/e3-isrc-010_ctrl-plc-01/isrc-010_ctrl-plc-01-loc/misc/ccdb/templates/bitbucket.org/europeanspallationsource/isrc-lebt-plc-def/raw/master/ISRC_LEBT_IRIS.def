@@ -1,0 +1,11 @@
+############################  LEBT Iris  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("WtrFlowOK",          PV_DESC="IRIS Water Flow Status",          PV_ONAM="OK",  PV_ZNAM="NOK")
+add_digital("WtrTempMax1Err",     PV_DESC="IRIS Water Temperature 1 Status", PV_ONAM="NOK", PV_ZNAM="OK")
+add_digital("WtrTempMax2Err",     PV_DESC="IRIS Water Temperature 2 Status", PV_ONAM="NOK", PV_ZNAM="OK")
+
+#add_analog("WtrTemp1R", "REAL",  PV_DESC = "Iris Temperature Sensor 1")
+#add_analog("WtrTemp2R", "REAL",  PV_DESC = "Iris Temperature Sensor 2")

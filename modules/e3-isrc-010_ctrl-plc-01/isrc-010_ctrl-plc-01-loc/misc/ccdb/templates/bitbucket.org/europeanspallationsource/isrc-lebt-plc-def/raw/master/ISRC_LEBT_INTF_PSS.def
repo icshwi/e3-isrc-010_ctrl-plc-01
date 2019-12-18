@@ -1,0 +1,7 @@
+############################  ISRC_LEBT interface with PSS  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("PSSOK",     PV_DESC="Personnel Safety System Status",  PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("HVPermitR", PV_DESC="HV Permit from PSS",              PV_ONAM="OK", PV_ZNAM="NOK")

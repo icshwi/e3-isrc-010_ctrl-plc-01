@@ -1,0 +1,7 @@
+############################  ISRC_LEBT Coil Power Supply  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("PwrSuppOK", PV_DESC="Coil Power Supply Status",         PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("EnCmdR",    PV_DESC="Coil Power Supply Enable Command", PV_ONAM="ON", PV_ZNAM="OFF")

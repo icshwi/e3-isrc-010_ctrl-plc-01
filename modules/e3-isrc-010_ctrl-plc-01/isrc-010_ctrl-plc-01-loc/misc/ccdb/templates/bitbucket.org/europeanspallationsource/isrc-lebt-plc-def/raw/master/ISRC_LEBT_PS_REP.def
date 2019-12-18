@@ -1,0 +1,27 @@
+############################  ISrc and LEBT Repeller's Power Supply  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("VolOK",      PV_DESC="Repeller Voltage Status", PV_ONAM="OK", PV_ZNAM="NOK")
+
+############################
+#  PARAMETER BLOCK
+############################ 
+define_parameter_block()
+add_analog("iVolR","REAL", PV_DESC="Repeller's VolR Value")
+
+
+add_verbatim("""
+
+record(ao, "[PLCF#INSTALLATION_SLOT]:iVolRDirect")
+{
+  field(DESC, "Redirect Rep. VolR to Interlock PLC")
+  field(DTYP, "Soft Channel")
+  field(FLNK, "[PLCF#INSTALLATION_SLOT]:iVolR")
+  field(OUT, "[PLCF#INSTALLATION_SLOT]:iVolR")
+  field(DOL, "[PLCF#INSTALLATION_SLOT]:VolR CP")
+  field(OMSL, "closed_loop")
+}
+
+""")

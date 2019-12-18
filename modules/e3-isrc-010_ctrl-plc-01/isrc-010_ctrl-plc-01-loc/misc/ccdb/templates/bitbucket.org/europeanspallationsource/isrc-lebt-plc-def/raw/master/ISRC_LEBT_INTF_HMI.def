@@ -1,0 +1,251 @@
+############################  ISRC_LEBT HMI  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("ComIocOK",                  PV_DESC="PLC<->IOC Communication Status", PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("ComRioOK",                  PV_DESC="PLC<->RIO Communication Status", PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("ISrcOK",                    PV_DESC="ISrc Interlock System Status",   PV_ONAM="OK", PV_ZNAM="NOK")
+
+
+################## EVENTS MEMORIZATION ##################
+add_digital("EVENT_A_MEMO",              PV_DESC="Event A Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EVENT_B_MEMO",              PV_DESC="Event B Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EVENT_C_MEMO",              PV_DESC="Event C Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EVENT_D_MEMO",              PV_DESC="Event D Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EVENT_E_MEMO",              PV_DESC="Event E Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EVENT_F_MEMO",              PV_DESC="Event F Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EVENT_G_MEMO",              PV_DESC="Event G Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EVENT_H_MEMO",              PV_DESC="Event H Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+
+######### A - Magnetron
+add_digital("ChopPwrSysOK_MEMO",         PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("ChopVoltAlarm_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("ChopWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+add_digital("Sol1WtrTempOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Sol2WtrTempOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Sol1WtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Sol2WtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Sol1CurMaxErr_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Sol2CurMaxErr_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Str1HCurMaxErr_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Str2HCurMaxErr_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Str1VCurMaxErr_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Str2VCurMaxErr_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+add_digital("Coil1PwrSuppOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Coil2PwrSuppOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Coil3PwrSuppOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+#Coils water flow and temperature are in event C - Coils
+
+add_digital("HVITLidOpenR_MEMO",         PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("HVITOilTempOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+add_digital("GndWtrTempMaxErr_MEMO",     PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("HVWtrTempMaxErr_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+add_digital("RepWtrFlowOK_MEMO",         PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+add_digital("IrisWtrTemp1Err_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("IrisWtrTemp2Err_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("IrisWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+add_digital("EMUHWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EMUVWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("FCWtrFlowOK_MEMO",          PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("EMUOK_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+add_digital("IBSWtrFlowOK_MEMO",         PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("CollWtrFlowOK_MEMO",        PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("MatTrWtrFlowOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("PlasChWtrFlowOK_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("VacOK_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("VacPermit_MEMO",            PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("ComRioOK_MEMO",             PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("MPSOK_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("HVPSVolOK_Magtr_MEMO",      PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+add_digital("DPLOK_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+
+
+######### B - High Voltage
+add_digital("HVPfDoors_MEMO",            PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("HVPfRes_MEMO",              PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("HVPermit_MEMO",             PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("ComIocOK_MEMO",             PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Rep1VolOK_MEMO",            PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Rep2VolOK_MEMO",            PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("MagPulseModeOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("ESTOP_MEMO",                PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("HVPSConnErr_MEMO",          PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+
+#VacOK, EMUHWtrFlowOK, EMUVWtrFlowOK and FCWtrFlowOK are in Event A
+
+
+
+######### C - Coils
+add_digital("Coil1WtrFlowOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Coil2WtrFlowOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Coil3WtrFlowOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Coil1WtrTempOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Coil2WtrTempOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+add_digital("Coil3WtrTempOK_MEMO",       PV_DESC="Signal Memorization", PV_ONAM="ON", PV_ZNAM="OFF")
+#ComIocOK and HVWtrTempMax are in Event A
+
+
+######### D - Solenoid 1
+#Sol1WtrTempOK, Sol1WtrFlowOK, GndWtrTempMaxErr are in Event A and ComIocOK in event B
+
+
+######### E - Solenoid 2
+#Sol1WtrTempOK, Sol1WtrFlowOK, GndWtrTempMaxErr are in Event A and ComIocOK in event B
+
+
+######### F - H2 Injection
+#VacOK, ComRioOK are in Event A 
+
+
+######### G - Chopper
+#ChopPwrSysOK, ChopVoltAlarm, ChopWtrFlowOK are in Event A and ComIocOK is in Event B
+
+
+################## Mask Bits ##################
+
+######### A - Magnetron
+add_digital("F_MagtrEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+#
+add_digital("F_ChopWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_ChopPwrSysOK"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_ChopVoltAlarm"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+add_digital("F_Sol1WtrTempOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Sol2WtrTempOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Sol1WtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Sol2WtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Sol1CurMaxErr"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Sol2CurMaxErr"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Str1HCurMaxErr"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Str2HCurMaxErr"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Str1VCurMaxErr"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Str2VCurMaxErr"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+add_digital("F_Coil1WtrFlowOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil2WtrFlowOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil3WtrFlowOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil1WtrTempOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil2WtrTempOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil3WtrTempOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil1PwrSuppOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil2PwrSuppOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil3PwrSuppOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+add_digital("F_HVITLidOpen"     ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_HVITOilTempOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+add_digital("F_GndWtrTempMaxErr",   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_HVWtrTempMaxErr" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+add_digital("F_RepWtrFlowOK"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Rep1VolOK"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Rep2VolOK"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+
+add_digital("F_IrisWtrTemp1Err" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_IrisWtrTemp2Err" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_IrisWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+add_digital("F_FCWtrFlowOK"     ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_EMUHWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_EMUVWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_EMUOK"           ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+add_digital("F_IBSWtrFlowOK"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_CollWtrFlowOK"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_MatTrWtrFlowOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_PlasChWtrFlowOK" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_ComRioOK"        ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_MPSOK"           ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_VacOK"           ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_VacPermit"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_HVPSVolOK_Magtr" ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_MagPulseModeOK"  ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+add_digital("F_DPLOK"           ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+
+
+######### B - High Voltage
+add_digital("F_HVITLckEnCmd"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+#
+add_digital("F_HVPfDoors"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_HVPfRes"         ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_HVPermit"        ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_ComIocOK"        ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+#VacOK, EMUHWtrFlowOK, EMUVWtrFlowOK and FCWtrFlowOK are in Event A
+
+
+######### C - Coils
+add_digital("F_Coil1EnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil2EnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Coil3EnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+#
+
+
+######### D - Solenoid 1
+add_digital("F_Sol1EnCmd"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Str1HEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Str1VEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+#
+
+
+######### E - Solenoid 2
+add_digital("F_Sol2EnCmd"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Str2HEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_Str2VEnCmd"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+#
+
+
+######### F - H2 Injection
+add_digital("F_VacVVAOpenCmd"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+#
+
+
+######### G - Chopper
+add_digital("F_ChopHVEnCmd"     ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+#
+
+
+
+
+
+
+add_digital("F_ISrcOKtoMPS"     ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_MWPowerOn"       ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_VacVEVMCOK"      ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_GNDInletPres"    ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+add_digital("F_GNDOutletPres"   ,   PV_DESC="Mask Bit ReadBack",   PV_ONAM="Mask ON!",    PV_ZNAM="Mask OFF")
+
+
+
+############################
+#  COMMAND BLOCK
+############################ 
+define_command_block()
+add_digital("EVENT_A_ACK",          PV_DESC="Event Acknowledge")
+add_digital("EVENT_B_ACK",          PV_DESC="Event Acknowledge")
+add_digital("EVENT_C_ACK",          PV_DESC="Event Acknowledge")
+add_digital("EVENT_D_ACK",          PV_DESC="Event Acknowledge")
+add_digital("EVENT_E_ACK",          PV_DESC="Event Acknowledge")
+add_digital("EVENT_F_ACK",          PV_DESC="Event Acknowledge")
+add_digital("EVENT_G_ACK",          PV_DESC="Event Acknowledge")
+add_digital("EVENT_H_ACK",          PV_DESC="Event Acknowledge")
+
+
+############################
+#  PARAMETER BLOCK
+############################ 
+define_parameter_block()
+add_analog("VacLevelMaxS",    "REAL",                 PV_DESC="Vacuum Max Level")

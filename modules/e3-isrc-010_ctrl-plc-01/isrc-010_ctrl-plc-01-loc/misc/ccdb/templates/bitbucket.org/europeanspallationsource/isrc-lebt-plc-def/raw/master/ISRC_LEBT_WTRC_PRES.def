@@ -1,0 +1,6 @@
+############################  ISRC_LEBT Water Cooling Pressure Transmitter  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_analog("PresR",  "REAL",  PV_DESC = "Cooling Water Pressure value")

@@ -1,0 +1,7 @@
+############################  ISRC_LEBT interface with EMU  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("EMUOK",       PV_DESC="EMU Local Protection Status",           PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("EMUOK_Magtr", PV_DESC="EMU LPS Status for Magnetron Event",    PV_ONAM="OK", PV_ZNAM="NOK")

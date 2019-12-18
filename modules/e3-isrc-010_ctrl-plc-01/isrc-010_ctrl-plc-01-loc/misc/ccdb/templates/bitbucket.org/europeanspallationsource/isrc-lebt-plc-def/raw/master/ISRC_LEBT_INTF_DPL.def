@@ -1,0 +1,6 @@
+############################  ISRC_LEBT interface with DPL  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("DPLOK",       PV_DESC="DPL Local Protection Status",           PV_ONAM="OK", PV_ZNAM="NOK")

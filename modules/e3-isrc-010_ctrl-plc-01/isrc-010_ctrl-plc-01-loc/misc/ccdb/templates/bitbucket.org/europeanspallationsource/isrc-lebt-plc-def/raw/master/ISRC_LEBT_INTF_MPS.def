@@ -1,0 +1,7 @@
+############################  ISRC_LEBT interface with MPS  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("MPSOK",       PV_DESC="Machine Protection System Status",    PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("ISrcOKtoMPS", PV_DESC="ISrc Interlock System Status to MPS", PV_ONAM="OK", PV_ZNAM="NOK")

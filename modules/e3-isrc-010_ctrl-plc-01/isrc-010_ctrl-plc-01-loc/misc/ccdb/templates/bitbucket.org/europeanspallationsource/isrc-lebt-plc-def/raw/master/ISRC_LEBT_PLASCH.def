@@ -1,0 +1,6 @@
+############################  ISRC Plasma Chamber  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("WtrFlowOK", PV_DESC="Plasma Chamber Water Flow Status", PV_ONAM="OK", PV_ZNAM="NOK")

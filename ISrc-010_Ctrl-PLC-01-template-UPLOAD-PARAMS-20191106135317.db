@@ -1,0 +1,8 @@
+
+record(fanout, "ISrc-010:Ctrl-PLC-01:UploadParametersS") {
+	field(LNK1, "ISrc-010:ISS-HVPS:UploadParametersS")
+	field(LNK2, "ISrc-010:ISS-Intf-HMI:UploadParametersS")
+	field(LNK3, "ISrc-010:ISS-Magtr:UploadParametersS")
+	field(LNK4, "ISrc-010:PwrC-RepPS-01:UploadParametersS")
+	field(LNK5, "LEBT-010:PwrC-RepPS-01:UploadParametersS")
+}

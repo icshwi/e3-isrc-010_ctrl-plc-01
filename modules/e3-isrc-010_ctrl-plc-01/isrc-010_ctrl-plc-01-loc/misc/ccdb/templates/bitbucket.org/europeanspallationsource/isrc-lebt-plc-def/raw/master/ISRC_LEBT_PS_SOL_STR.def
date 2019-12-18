@@ -1,0 +1,8 @@
+############################  LEBT Solenoids and Steerers PowerSupply  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_analog("CurR-CT", "REAL", PV_DESC = "Curent Read from Current TrANSFORMER")
+add_digital("EnCmdR",        PV_DESC = "Power Supply Enable Command", PV_ONAM="ON",  PV_ZNAM="OFF")
+add_digital("CurMaxErr",     PV_DESC = "Reached Max Curent",         PV_ONAM="NOK", PV_ZNAM="OK")

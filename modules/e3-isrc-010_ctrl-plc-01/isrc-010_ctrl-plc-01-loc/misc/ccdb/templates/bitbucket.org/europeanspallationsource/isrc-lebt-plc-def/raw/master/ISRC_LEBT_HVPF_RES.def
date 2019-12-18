@@ -1,0 +1,6 @@
+############################  HVPf Neutral To Ground Resistor Switches  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("CloseR", PV_DESC="Neutral To Ground Resistor Switch Status", PV_ONAM="Close", PV_ZNAM="Open")

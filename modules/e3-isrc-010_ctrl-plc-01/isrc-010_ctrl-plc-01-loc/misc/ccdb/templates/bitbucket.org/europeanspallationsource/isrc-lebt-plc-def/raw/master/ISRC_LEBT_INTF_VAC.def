@@ -1,0 +1,7 @@
+############################  ISRC_LEBT interface with Vacuum System  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("VacOK",     PV_DESC="ISrc Vacuum System Status",      PV_ONAM="OK", PV_ZNAM="NOK")
+add_digital("VacPermit", PV_DESC="ISrc LEBT Vacuum System Status", PV_ONAM="OK", PV_ZNAM="NOK")

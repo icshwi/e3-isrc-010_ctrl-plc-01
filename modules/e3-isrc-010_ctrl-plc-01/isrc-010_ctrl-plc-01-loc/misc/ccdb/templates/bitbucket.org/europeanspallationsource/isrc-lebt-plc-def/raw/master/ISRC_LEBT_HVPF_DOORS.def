@@ -1,0 +1,6 @@
+##############################  ISRC HVPf Doors Status ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("CloseR", PV_DESC="Status of HV Platform doors", PV_ONAM="Close", PV_ZNAM="Open")

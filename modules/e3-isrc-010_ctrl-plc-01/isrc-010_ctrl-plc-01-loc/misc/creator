@@ -1,0 +1,6 @@
+#!/bin/sh
+
+#PLCFactory branch: master
+#PLCFactory commit: 7bed32997ad22c9988754478155c8c6fee4ce62f
+
+./plcfactory.py -d ISrc-010:Ctrl-PLC-01 --e3 --plc-interface 14

@@ -1,0 +1,38 @@
+############################  ISRC PLC Diagnostics  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+
+#Local modules connection state
+add_digital("CPU_Connected",       PV_DESC="LM CPU Connected",       PV_ONAM="Connected",  PV_ZNAM="Disconnected")      
+add_digital("DI1_Connected",       PV_DESC="LM DI1 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")      
+add_digital("DI2_Connected",       PV_DESC="LM DI2 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")      
+add_digital("AI1_Connected",       PV_DESC="LM AI1 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")      
+add_digital("AI2_Connected",       PV_DESC="LM AI2 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")      
+add_digital("DO1_Connected",       PV_DESC="LM DO1 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")      
+add_digital("DO2_Connected",       PV_DESC="LM DO2 Card Connected",  PV_ONAM="Connected",  PV_ZNAM="Disconnected")      
+
+#Local modules connection state
+add_digital("CPU_Status",          PV_DESC="LM CPU Status",          PV_ONAM="OK",         PV_ZNAM="NOK")      
+add_digital("DI1_Status",          PV_DESC="LM DI1 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")      
+add_digital("DI2_Status",          PV_DESC="LM DI2 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")      
+add_digital("AI1_Status",          PV_DESC="LM AI1 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")      
+add_digital("AI2_Status",          PV_DESC="LM AI2 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")      
+add_digital("DO1_Status",          PV_DESC="LM DO1 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")      
+add_digital("DO2_Status",          PV_DESC="LM DO2 Card Status",     PV_ONAM="OK",         PV_ZNAM="NOK")      
+
+
+#RIO connection state
+add_digital("RIO_Connected",       PV_DESC="RIO Connected",           PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+add_digital("RIO_DI1_Connected",   PV_DESC="RIO DI1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+add_digital("RIO_DI2_Connected",   PV_DESC="RIO DI2 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+add_digital("RIO_AI1_Connected",   PV_DESC="RIO AI1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+add_digital("RIO_DO1_Connected",   PV_DESC="RIO DO1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+
+#RIO connection state                                                                        
+add_digital("RIO_Status",          PV_DESC="RIO Status",              PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+add_digital("RIO_DI1_Status",      PV_DESC="RIO DI1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+add_digital("RIO_DI2_Status",      PV_DESC="RIO DI2 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+add_digital("RIO_AI1_Status",      PV_DESC="RIO AI1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")      
+add_digital("RIO_DO1_Status",      PV_DESC="RIO DO1 Card Connected",  PV_ONAM="Connected", PV_ZNAM="Disconnected")      

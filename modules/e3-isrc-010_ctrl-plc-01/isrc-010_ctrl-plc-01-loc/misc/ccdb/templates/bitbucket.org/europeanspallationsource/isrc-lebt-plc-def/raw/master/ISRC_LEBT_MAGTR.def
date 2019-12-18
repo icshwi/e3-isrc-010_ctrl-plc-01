@@ -1,0 +1,30 @@
+############################  ISRC Magnetron  ##############################
+############################
+#  STATUS BLOCK
+############################ 
+define_status_block()
+add_digital("EnCmdR",      PV_DESC="Magnetron Enable Command",  PV_ONAM="ON",        PV_ZNAM="OFF")
+add_digital("MWPowerOnR",  PV_DESC="Magnetron MW Power Status", PV_ONAM="ON",        PV_ZNAM="OFF")
+add_digital("PulseModeOK", PV_DESC="Magnetron Pulse Mode OK",   PV_ONAM="OK",        PV_ZNAM="NOK")
+
+
+############################
+#  PARAMETER BLOCK
+############################ 
+define_parameter_block()
+add_digital("iPulseMode", PV_DESC="Magnetron Pulse Mode",      PV_ONAM="Continous", PV_ZNAM="Pulsed")
+
+
+add_verbatim("""
+
+record(bo, "[PLCF#INSTALLATION_SLOT]:iPulseModeDirect")
+{
+  field(DESC, "Redirect Magnetron PulseMode to Interlock PLC") 
+  field(DTYP, "Soft Channel")
+  field(FLNK, "[PLCF#INSTALLATION_SLOT]:iPulseMode")
+  field(OUT, "[PLCF#INSTALLATION_SLOT]:iPulseMode")
+  field(DOL, "[PLCF#INSTALLATION_SLOT]:Setup.B3 CP")
+  field(OMSL, "closed_loop")
+}
+
+""")

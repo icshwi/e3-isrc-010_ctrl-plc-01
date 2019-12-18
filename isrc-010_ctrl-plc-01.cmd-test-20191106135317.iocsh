@@ -1,0 +1,7 @@
+
+# @field isrc-010_ctrl-plc-01_VERSION
+# @runtime YES
+
+
+# Load plc interface database
+dbLoadRecords("isrc-010_ctrl-plc-01-test.db", "MODVERSION=$(isrc-010_ctrl-plc-01_VERSION)")
